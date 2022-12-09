@@ -2,38 +2,60 @@
 from flask import Flask
 from flask import send_from_directory
 from flask import render_template
+# from flask import request
+import json
+from dataPersistence import *
 
+# Init Flask server specifying static files directory
 WEB_APP_DIR = 'templates'
-
 app = Flask(__name__, template_folder=WEB_APP_DIR)
+
+# Test that server is running fine
+
+
+@app.route('/echo/<stuff>', methods=['GET'])
+def test(stuff):
+    return stuff
+
+# Static file serving index 1
 
 
 @app.route('/')
-def render_page():
+def staticServingIndex1():
     return render_template('index.html')
+
+# Static file serving index 2
 
 
 @app.route('/web/')
-def render_page_web():
+def staticServingIndex2():
     return render_template('index.html')
+
+# Static file serving specific route
 
 
 @app.route('/web/<path:name>')
-def return_flutter_doc(name):
-
+def staticServingFromPath(name):
+    print(name)
     datalist = str(name).split('/')
-    DIR_NAME = WEB_APP_DIR
+    filePath = WEB_APP_DIR
+    # Join possible sub-folder names
+    for i in range(0, len(datalist) - 1):
+        filePath += '/' + datalist[i]
+    # Return file
+    return send_from_directory(filePath, datalist[-1])
 
-    if len(datalist) > 1:
-        for i in range(0, len(datalist) - 1):
-            DIR_NAME += '/' + datalist[i]
 
-    return send_from_directory(DIR_NAME, datalist[-1])
+@app.route('/db/getMenuEntries/<int:menuID>')
+def getMenuEntries(menuID):
+    return selectMenuEntries(menuID)
 
-@app.route('/test', methods=['GET', 'POST'])
-def test():
-    return 'ciao'
+
+# Image serving from DB
+@app.route('/db/getFoodImage/<int:menuEntryID>')
+def getFoodImage(menuEntryID):
+    return f'{menuEntryID}'
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=4999)
-
