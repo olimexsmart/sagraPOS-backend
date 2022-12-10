@@ -4,12 +4,32 @@ from sqlite3 import Connection
 DB_NAME = 'sagraPOS.sqlite3'
 
 
-# Get all menu entries of a specific menu
-def selectMenuEntries(menuID):
+# Get all menus
+def selectMenus() -> dict:
     con = connectInitDB()
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    res = cur.execute('SELECT * FROM menuEntries WHERE ID = ?',
+    res = cur.execute('SELECT * FROM menus').fetchall()
+    return [dict(row) for row in res]
+
+
+# Get all menu entries of a specific menu
+def selectMenuEntries(menuID: int) -> dict:
+    con = connectInitDB()
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    res = cur.execute('''SELECT ID, categoryID, name, price 
+                        FROM menuEntries 
+                        WHERE menuID = ?''', (menuID,)).fetchall()
+    return [dict(row) for row in res]
+
+
+# Get all categories
+def selectMenuCategories(menuID) -> dict:
+    con = connectInitDB()
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    res = cur.execute('SELECT ID, name FROM categories WHERE menuID = ?',
                       (menuID,)).fetchall()
     return [dict(row) for row in res]
 
@@ -35,9 +55,11 @@ def connectInitDB() -> Connection:
         # categories
         cur.execute('''
             CREATE TABLE "categories" (
-	        "ID"	INTEGER,
-	        "name"	TEXT NOT NULL,
-	        PRIMARY KEY("ID" AUTOINCREMENT));
+                "ID"	INTEGER,
+                "menuID"	INTEGER NOT NULL,
+                "name"	TEXT NOT NULL,
+                PRIMARY KEY("ID" AUTOINCREMENT),
+                FOREIGN KEY("menuID") REFERENCES "menus"("ID") ON DELETE CASCADE)
             ''')
         print('Table categorie created')
         # menuEntry
