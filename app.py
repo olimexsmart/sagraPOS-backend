@@ -2,8 +2,9 @@
 from flask import Flask
 from flask import send_from_directory
 from flask import render_template
-# from flask import request
+from flask import request
 from dataPersistence import *
+from printerDriver import *
 
 # Init Flask server specifying static files directory
 WEB_APP_DIR = 'templates'
@@ -63,6 +64,21 @@ def getMenuCategories(menuID):
 @app.route('/db/getFoodImage/<int:menuEntryID>')
 def getFoodImage(menuEntryID):
     return f'{menuEntryID}'
+
+
+# Print order
+@app.route('/print/order', methods=['POST'])
+def printOrder():
+    op = request.json
+    # Re-arrange data for printing
+    toPrint = dict()
+    for e in op['items']:
+        if e['categoryID'] not in toPrint:
+            toPrint[e['categoryID']] = []
+        toPrint[e['categoryID']].append(e)
+    # Send to print
+    order(toPrint)
+    return 'true'
 
 
 if __name__ == '__main__':
